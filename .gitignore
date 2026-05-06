@@ -21,6 +21,10 @@ go.work
 build/
 dist/
 
+# Binary
+gosync
+*.exe
+
 # IDE files
 .vscode/
 .idea/
