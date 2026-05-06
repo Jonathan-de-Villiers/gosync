@@ -32,12 +32,12 @@ seamless synchronization of configuration files across multiple machines.`,
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolP("dry-run", "n", false, "show what would be done without making changes")
 
-	// Pull command
+	// Pull command (sync from repo)
 	var pullCmd = &cobra.Command{
 		Use:   "pull [package|all]",
-		Short: "Sync from repository to system (Repo -> $HOME)",
+		Short: "Pull from repository to system (Repo -> $HOME)",
 		Long: `Pull configuration files from the dotfiles repository to your home directory.
-This will overwrite files in your home directory with versions from the repository.`,
+This syncs FROM the repository TO your system, updating files in $HOME.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load(configFile)
@@ -53,12 +53,12 @@ This will overwrite files in your home directory with versions from the reposito
 		},
 	}
 
-	// Push command
-	var pushCmd = &cobra.Command{
-		Use:   "push [package|all]",
-		Short: "Sync from system to repository ($HOME -> Repo)",
-		Long: `Push configuration files from your home directory to the dotfiles repository.
-This will update files in the repository with versions from your home directory.`,
+	// Sync command (sync to repo)
+	var syncCmd = &cobra.Command{
+		Use:   "sync [package|all]",
+		Short: "Sync to repository ($HOME -> Repo)",
+		Long: `Sync configuration files from your home directory to the dotfiles repository.
+This syncs FROM your system TO the repository, updating files in the repo.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load(configFile)
@@ -70,7 +70,7 @@ This will update files in the repository with versions from your home directory.
 			verbose, _ := cmd.Flags().GetBool("verbose")
 
 			syncer := sync.New(cfg, dryRun, verbose)
-			return syncer.Push(args[0])
+			return syncer.SyncToRepo(args[0])
 		},
 	}
 
@@ -164,7 +164,7 @@ If no directory is specified, uses $HOME/dotfiles.`,
 
 	// Add commands to root
 	rootCmd.AddCommand(pullCmd)
-	rootCmd.AddCommand(pushCmd)
+	rootCmd.AddCommand(syncCmd)
 	rootCmd.AddCommand(statusCmd)
 	rootCmd.AddCommand(packagesCmd)
 	rootCmd.AddCommand(initCmd)

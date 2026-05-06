@@ -123,6 +123,29 @@ func (c *Config) setDefaults() error {
 	if c.Sync.ConfirmChanges {
 		c.Sync.ConfirmChanges = true
 	}
+	if len(c.Sync.ExcludePatterns) == 0 {
+		c.Sync.ExcludePatterns = []string{
+			"**/.DS_Store",
+			".DS_Store",
+			"Thumbs.db",
+			"*.tmp",
+			"*.temp",
+			"*.log",
+			".git",
+			".gitignore",
+			"backups/",
+			"dotfiles-backups/",
+			"lazy-lock.json",
+			"package-lock.json",
+			"yarn.lock",
+			"Gemfile.lock",
+			"Cargo.lock",
+			"poetry.lock",
+			"Pipfile.lock",
+			"composer.lock",
+			"*.lock",
+		}
+	}
 
 	// Platform defaults
 	if c.Platform.OS == "" {
