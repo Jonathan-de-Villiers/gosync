@@ -1,0 +1,110 @@
+# .goreleaser.yml
+# GoReleaser configuration for GoSync
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    binary: gosync
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}-
+      {{- .Version }}-
+      {{- title .Os }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      Merge branch
+
+# Homebrew tap
+brews:
+  - name: gosync
+    homepage: https://github.com/your-username/gosync
+    repository:
+      owner: your-username
+      name: homebrew-tap
+    commit_author:
+      name: gosync-bot
+      email: bot@users.noreply.github.com
+    folder: Formula
+    license: MIT
+    description: "A powerful, distributable dotfiles management tool"
+
+# Scoop bucket
+scoops:
+  - name: gosync
+    homepage: https://github.com/your-username/gosync
+    repository:
+      owner: your-username
+      name: scoop-bucket
+    commit_author:
+      name: gosync-bot
+      email: bot@users.noreply.github.com
+    license: MIT
+    description: "A powerful, distributable dotfiles management tool"
+
+# Chocolatey package
+chocolateys:
+  - name: gosync
+    owners: your-username
+    title: GoSync
+    authors: your-username
+    project_url: https://github.com/your-username/gosync
+    url_template: https://github.com/your-username/gosync/releases/download/{{ .Tag }}/{{ .ArtifactName }}
+    icon_url: https://raw.githubusercontent.com/your-username/gosync/main/assets/icon.png
+    license: MIT
+    description: |
+      GoSync is a powerful, distributable dotfiles management tool written in Go that provides 
+      seamless synchronization of configuration files across multiple machines.
+    summary: A powerful dotfiles management tool
+    release_notes: "{{ .Changelog }}"
+    dependencies: []
+    project_source_url: https://github.com/your-username/gosync
+    docs_url: https://github.com/your-username/gosync/blob/main/README.md
+    bug_tracker_url: https://github.com/your-username/gosync/issues
+    tags: dotfiles sync configuration management golang
+    skip_publish: false

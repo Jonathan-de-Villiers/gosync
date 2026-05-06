@@ -1,0 +1,164 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: go test -v ./...
+
+  build:
+    name: Build
+    needs: test
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Get version
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Build binary
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        VERSION: ${{ steps.version.outputs.VERSION }}
+        COMMIT: ${{ github.sha }}
+        DATE: ${{ github.event.head_commit.timestamp }}
+      run: |
+        mkdir -p dist
+        
+        BINARY_NAME=gosync
+        if [ "$GOOS" = "windows" ]; then
+          BINARY_NAME=gosync.exe
+        fi
+        
+        go build -ldflags "-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" \
+          -o dist/${BINARY_NAME} ./cmd/gosync
+        
+        # Create archive
+        cd dist
+        if [ "$GOOS" = "windows" ]; then
+          zip ../gosync-${VERSION}-${GOOS}-${GOARCH}.zip ${BINARY_NAME}
+        else
+          tar -czf ../gosync-${VERSION}-${GOOS}-${GOARCH}.tar.gz ${BINARY_NAME}
+        fi
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: gosync-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: |
+          gosync-${{ steps.version.outputs.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}.*
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get version
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.VERSION }}
+        name: GoSync ${{ steps.version.outputs.VERSION }}
+        body: |
+          ## GoSync ${{ steps.version.outputs.VERSION }}
+          
+          ### Installation
+          
+          **Binary Download:**
+          - Linux (AMD64): `gosync-${{ steps.version.outputs.VERSION }}-linux-amd64.tar.gz`
+          - Linux (ARM64): `gosync-${{ steps.version.outputs.VERSION }}-linux-arm64.tar.gz`
+          - macOS (Intel): `gosync-${{ steps.version.outputs.VERSION }}-darwin-amd64.tar.gz`
+          - macOS (Apple Silicon): `gosync-${{ steps.version.outputs.VERSION }}-darwin-arm64.tar.gz`
+          - Windows (AMD64): `gosync-${{ steps.version.outputs.VERSION }}-windows-amd64.zip`
+          
+          **Quick Install:**
+          ```bash
+          curl -L https://github.com/your-username/gosync/releases/download/${{ steps.version.outputs.VERSION }}/gosync-${{ steps.version.outputs.VERSION }}-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz | tar xz
+          sudo mv gosync /usr/local/bin/
+          ```
+          
+          **From Source:**
+          ```bash
+          git clone https://github.com/your-username/gosync.git
+          cd gosync
+          git checkout ${{ steps.version.outputs.VERSION }}
+          make install
+          ```
+          
+          ### Changelog
+          
+          See the [CHANGELOG.md](https://github.com/your-username/gosync/blob/main/CHANGELOG.md) for detailed changes.
+        files: |
+          artifacts/*/gosync-*
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
