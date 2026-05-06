@@ -100,7 +100,7 @@ jobs:
         
         go build -o ${BINARY_NAME} ./cmd/gosync
         
-        # Test that binary works
-        if [ "$GOOS" != "windows" ]; then
+        # Test that binary works (only for linux-amd64 on this runner)
+        if [ "$GOOS" = "linux" ] && [ "$GOARCH" = "amd64" ]; then
           ./${BINARY_NAME} --help
         fi
