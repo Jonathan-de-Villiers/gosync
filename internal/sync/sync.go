@@ -57,7 +57,7 @@ func (s *Syncer) Pull(target string) error {
 	return s.sync(PullMode, target)
 }
 
-func (s *Syncer) Push(target string) error {
+func (s *Syncer) SyncToRepo(target string) error {
 	return s.sync(PushMode, target)
 }
 
@@ -463,7 +463,7 @@ func (s *Syncer) statusPackage(pkg string) error {
 
 		if !repoExists && homeExists {
 			newFiles++
-			fmt.Printf("  → %s (only in home, needs push)\n", file)
+			fmt.Printf("  → %s (only in home, needs sync)\n", file)
 		} else if repoExists && !homeExists {
 			missing++
 			fmt.Printf("  ← %s (only in repo, needs pull)\n", file)
@@ -496,13 +496,15 @@ func (s *Syncer) statusPackage(pkg string) error {
 			}
 		} else {
 			inSync++
-			if s.verbose {
-				fmt.Printf("  = %s (in sync)\n", file)
-			}
 		}
 	}
 
-	fmt.Printf("Summary: %d changed, %d new (push needed), %d missing (pull needed), %d in sync\n", changes, newFiles, missing, inSync)
+	// Show compact summary
+	if inSync > 0 && !s.verbose {
+		fmt.Printf("  ... and %d files in sync\n", inSync)
+	}
+
+	fmt.Printf("Summary: %d changed, %d new (sync needed), %d missing (pull needed), %d in sync\n", changes, newFiles, missing, inSync)
 	return nil
 }
 
