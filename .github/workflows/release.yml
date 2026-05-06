@@ -144,7 +144,20 @@ jobs:
           
           **Quick Install:**
           ```bash
-          curl -L https://github.com/Jonathan-de-Villiers/gosync/releases/download/${{ steps.version.outputs.VERSION }}/gosync-${{ steps.version.outputs.VERSION }}-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz | tar xz
+          # Linux AMD64
+          curl -L https://github.com/Jonathan-de-Villiers/gosync/releases/download/${{ steps.version.outputs.VERSION }}/gosync-${{ steps.version.outputs.VERSION }}-linux-amd64.tar.gz | tar xz
+          sudo mv gosync /usr/local/bin/
+          
+          # Linux ARM64
+          curl -L https://github.com/Jonathan-de-Villiers/gosync/releases/download/${{ steps.version.outputs.VERSION }}/gosync-${{ steps.version.outputs.VERSION }}-linux-arm64.tar.gz | tar xz
+          sudo mv gosync /usr/local/bin/
+          
+          # macOS Intel
+          curl -L https://github.com/Jonathan-de-Villiers/gosync/releases/download/${{ steps.version.outputs.VERSION }}/gosync-${{ steps.version.outputs.VERSION }}-darwin-amd64.tar.gz | tar xz
+          sudo mv gosync /usr/local/bin/
+          
+          # macOS Apple Silicon
+          curl -L https://github.com/Jonathan-de-Villiers/gosync/releases/download/${{ steps.version.outputs.VERSION }}/gosync-${{ steps.version.outputs.VERSION }}-darwin-arm64.tar.gz | tar xz
           sudo mv gosync /usr/local/bin/
           ```
           
