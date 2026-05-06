@@ -63,9 +63,9 @@ changelog:
 # Homebrew tap
 brews:
   - name: gosync
-    homepage: https://github.com/your-username/gosync
+    homepage: https://github.com/Jonathan-de-Villiers/gosync
     repository:
-      owner: your-username
+      owner: Jonathan-de-Villiers
       name: homebrew-tap
     commit_author:
       name: gosync-bot
@@ -77,9 +77,9 @@ brews:
 # Scoop bucket
 scoops:
   - name: gosync
-    homepage: https://github.com/your-username/gosync
+    homepage: https://github.com/Jonathan-de-Villiers/gosync
     repository:
-      owner: your-username
+      owner: Jonathan-de-Villiers
       name: scoop-bucket
     commit_author:
       name: gosync-bot
@@ -90,12 +90,12 @@ scoops:
 # Chocolatey package
 chocolateys:
   - name: gosync
-    owners: your-username
+    owners: Jonathan-de-Villiers
     title: GoSync
-    authors: your-username
-    project_url: https://github.com/your-username/gosync
-    url_template: https://github.com/your-username/gosync/releases/download/{{ .Tag }}/{{ .ArtifactName }}
-    icon_url: https://raw.githubusercontent.com/your-username/gosync/main/assets/icon.png
+    authors: Jonathan-de-Villiers
+    project_url: https://github.com/Jonathan-de-Villiers/gosync
+    url_template: https://github.com/Jonathan-de-Villiers/gosync/releases/download/{{ .Tag }}/{{ .ArtifactName }}
+    icon_url: https://raw.githubusercontent.com/Jonathan-de-Villiers/gosync/main/assets/icon.png
     license: MIT
     description: |
       GoSync is a powerful, distributable dotfiles management tool written in Go that provides 
@@ -103,8 +103,8 @@ chocolateys:
     summary: A powerful dotfiles management tool
     release_notes: "{{ .Changelog }}"
     dependencies: []
-    project_source_url: https://github.com/your-username/gosync
-    docs_url: https://github.com/your-username/gosync/blob/main/README.md
-    bug_tracker_url: https://github.com/your-username/gosync/issues
+    project_source_url: https://github.com/Jonathan-de-Villiers/gosync
+    docs_url: https://github.com/Jonathan-de-Villiers/gosync/blob/main/README.md
+    bug_tracker_url: https://github.com/Jonathan-de-Villiers/gosync/issues
     tags: dotfiles sync configuration management golang
     skip_publish: false

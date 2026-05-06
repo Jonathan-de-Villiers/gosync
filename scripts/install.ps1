@@ -53,7 +53,7 @@ function Get-Architecture {
 # Get latest version
 function Get-LatestVersion {
     try {
-        $response = Invoke-RestMethod -Uri "https://api.github.com/repos/your-username/gosync/releases/latest" -UseBasicParsing
+        $response = Invoke-RestMethod -Uri "https://api.github.com/repos/Jonathan-de-Villiers/gosync/releases/latest" -UseBasicParsing
         return $response.tag_name
     } catch {
         Write-LogError "Failed to get latest version: $_"
@@ -70,7 +70,7 @@ function Install-GoSync {
     }
     
     $filename = "gosync-$Version-windows-$Arch.zip"
-    $downloadUrl = "https://github.com/your-username/gosync/releases/download/$Version/$filename"
+    $downloadUrl = "https://github.com/Jonathan-de-Villiers/gosync/releases/download/$Version/$filename"
     $tempDir = Join-Path $env:TEMP "gosync-install"
     
     Write-LogInfo "Downloading GoSync $Version for Windows-$Arch..."

@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-REPO="your-username/gosync"
+REPO="Jonathan-de-Villiers/gosync"
 INSTALL_DIR="/usr/local/bin"
 VERSION="${1:-latest}"
 
