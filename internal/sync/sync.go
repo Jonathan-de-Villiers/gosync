@@ -368,7 +368,9 @@ func (s *Syncer) copyFile(src, dest string, isDir bool) error {
 func (s *Syncer) confirmSync(message string) bool {
 	fmt.Printf("%s (y/N): ", message)
 	var response string
-	fmt.Scanln(&response)
+	if _, err := fmt.Scanln(&response); err != nil {
+		return false
+	}
 	return strings.ToLower(response) == "y" || strings.ToLower(response) == "yes"
 }
 
@@ -537,7 +539,9 @@ func (s *Syncer) scanUntracked() error {
 			if s.confirmSync(fmt.Sprintf("Add '%s' to dotfiles?", name)) {
 				pkgName := name
 				if s.confirmSync(fmt.Sprintf("Use '%s' as package name? (enter for different name)", name)) {
-					fmt.Scanln(&pkgName)
+					if _, err := fmt.Scanln(&pkgName); err != nil {
+						pkgName = name
+					}
 					if pkgName == "" {
 						pkgName = name
 					}
