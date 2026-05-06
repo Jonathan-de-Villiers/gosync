@@ -446,7 +446,7 @@ func (s *Syncer) statusPackage(pkg string) error {
 		return err
 	}
 
-	var changes, newFiles, missing int
+	var changes, newFiles, missing, inSync int
 	for _, file := range files {
 		repoPath := filepath.Join(s.config.DotfilesDir, pkg, file)
 		homePath := filepath.Join(os.Getenv("HOME"), file)
@@ -463,19 +463,46 @@ func (s *Syncer) statusPackage(pkg string) error {
 
 		if !repoExists && homeExists {
 			newFiles++
-			fmt.Printf("  + %s (new in home)\n", file)
+			fmt.Printf("  → %s (only in home, needs push)\n", file)
 		} else if repoExists && !homeExists {
 			missing++
-			fmt.Printf("  - %s (missing in home)\n", file)
+			fmt.Printf("  ← %s (only in repo, needs pull)\n", file)
 		} else if repoExists && homeExists && s.hasChanges(repoPath, homePath) {
 			changes++
-			fmt.Printf("  Δ %s (modified)\n", file)
-		} else if s.verbose {
-			fmt.Printf("  = %s (in sync)\n", file)
+			repoInfo, _ := os.Stat(repoPath)
+			homeInfo, _ := os.Stat(homePath)
+
+			direction := "↔"
+			if repoInfo != nil && homeInfo != nil {
+				if repoInfo.ModTime().After(homeInfo.ModTime()) {
+					direction = "←"
+				} else {
+					direction = "→"
+				}
+			}
+
+			repoTime := "N/A"
+			homeTime := "N/A"
+			if repoInfo != nil {
+				repoTime = repoInfo.ModTime().Format("2006-01-02 15:04")
+			}
+			if homeInfo != nil {
+				homeTime = homeInfo.ModTime().Format("2006-01-02 15:04")
+			}
+
+			fmt.Printf("  %s %s (modified)\n", direction, file)
+			if s.verbose {
+				fmt.Printf("      Repo: %s | Home: %s\n", repoTime, homeTime)
+			}
+		} else {
+			inSync++
+			if s.verbose {
+				fmt.Printf("  = %s (in sync)\n", file)
+			}
 		}
 	}
 
-	fmt.Printf("Summary: %d changed, %d new, %d missing\n", changes, newFiles, missing)
+	fmt.Printf("Summary: %d changed, %d new (push needed), %d missing (pull needed), %d in sync\n", changes, newFiles, missing, inSync)
 	return nil
 }
 
