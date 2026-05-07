@@ -123,7 +123,10 @@ untracked configuration directories. It automatically:
 ### Update Commands
 
 ```bash
-# Check for updates
+# Check for updates (standalone)
+gosync -u
+
+# Check for and install updates
 gosync update
 
 # Update without confirmation

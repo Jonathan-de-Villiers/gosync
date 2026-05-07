@@ -229,6 +229,28 @@ This command connects to GitHub to check for updates and can self-update the bin
 	}
 	rootCmd.PersistentFlags().BoolP("check-update", "u", false, "Check for updates before running command")
 
+	// Handle standalone -u flag (no subcommand)
+	rootCmd.Run = func(cmd *cobra.Command, args []string) {
+		checkFlag, _ := cmd.Flags().GetBool("check-update")
+		if checkFlag {
+			// Run update check directly when -u is used without subcommand
+			release, hasUpdate, err := updater.CheckUpdate(version)
+			if err != nil {
+				fmt.Printf("Error checking for updates: %v\n", err)
+				return
+			}
+			if !hasUpdate {
+				fmt.Printf("✓ gosync is up to date (version %s)\n", version)
+				return
+			}
+			fmt.Printf("Update available: %s → %s\n", version, release.TagName)
+			fmt.Println("Run 'gosync update' to install")
+			return
+		}
+		// No -u flag, show help
+		cmd.Help()
+	}
+
 	// Add commands to root
 	rootCmd.AddCommand(pullCmd)
 	rootCmd.AddCommand(syncCmd)
