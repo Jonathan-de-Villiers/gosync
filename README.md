@@ -11,16 +11,33 @@ A powerful, distributable dotfiles management tool written in Go that provides s
 - **Dry-run mode**: Preview changes without making them
 - **OS filtering**: Automatically filter packages incompatible with your OS
 - **Untracked detection**: Scan for new configs to add to your dotfiles
+- **Self-updater**: Built-in update checker and installer
+- **Colored output**: Easy-to-read status with color coding
+- **Smart exclusions**: Auto-ignores .DS_Store, lock files, backups
+- **Compact status**: Only shows files needing attention
 - **Git integration**: Ready for remote repository sync (planned)
 - **Template system**: Environment-specific configurations (planned)
 - **Plugin architecture**: Extensible with custom sync logic (planned)
 
 ## Installation
 
+### From Release (Recommended)
+
+**Linux/macOS:**
+```bash
+curl -L https://github.com/Jonathan-de-Villiers/gosync/releases/latest/download/gosync-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz | tar xz
+sudo mv gosync /usr/local/bin/
+```
+
+**Or use the install script:**
+```bash
+curl -sSL https://raw.githubusercontent.com/Jonathan-de-Villiers/gosync/main/scripts/install.sh | bash
+```
+
 ### From Source
 
 ```bash
-git clone https://github.com/your-username/gosync.git
+git clone https://github.com/Jonathan-de-Villiers/gosync.git
 cd gosync
 make install
 ```
@@ -28,7 +45,7 @@ make install
 ### Build from Source
 
 ```bash
-git clone https://github.com/your-username/gosync.git
+git clone https://github.com/Jonathan-de-Villiers/gosync.git
 cd gosync
 make build
 ```
@@ -57,9 +74,9 @@ The binary will be available in the `build/` directory.
    gosync pull all
    ```
 
-5. **Push changes** (system → repo):
+5. **Sync changes** (system → repo):
    ```bash
-   gosync push all
+   gosync sync all
    ```
 
 ## Usage
@@ -73,8 +90,8 @@ gosync pull all
 # Pull only specific package
 gosync pull nvim
 
-# Push your changes to the repository
-gosync push all
+# Sync your changes to the repository
+gosync sync all
 
 # Show status of all packages
 gosync status all
@@ -89,6 +106,19 @@ gosync packages
 gosync config show
 ```
 
+### Update Commands
+
+```bash
+# Check for updates
+gosync update
+
+# Update without confirmation
+gosync update -y
+
+# Check for updates before running any command
+gosync -u status all
+```
+
 ### Advanced Options
 
 ```bash
@@ -97,6 +127,9 @@ gosync pull all --dry-run
 
 # Verbose output
 gosync pull all --verbose
+
+# Show all files (including in-sync) in status
+gosync status all --verbose
 
 # Use custom config file
 gosync pull all --config /path/to/config.yaml

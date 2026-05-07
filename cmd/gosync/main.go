@@ -7,6 +7,7 @@ import (
 
 	"gosync/internal/config"
 	"gosync/internal/sync"
+	"gosync/internal/updater"
 
 	"github.com/spf13/cobra"
 )
@@ -162,6 +163,54 @@ If no directory is specified, uses $HOME/dotfiles.`,
 
 	configCmd.AddCommand(showConfigCmd)
 
+	// Update command
+	var updateCmd = &cobra.Command{
+		Use:   "update",
+		Short: "Check for and install updates",
+		Long: `Check for newer versions of gosync and optionally update to the latest release.
+This command connects to GitHub to check for updates and can self-update the binary.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			release, hasUpdate, err := updater.CheckUpdate(version)
+			if err != nil {
+				return fmt.Errorf("update check failed: %w", err)
+			}
+
+			if !hasUpdate {
+				fmt.Printf("✓ gosync is up to date (version %s)\n", version)
+				return nil
+			}
+
+			fmt.Printf("Update available: %s → %s\n", version, release.TagName)
+
+			// Auto-update flag
+			autoUpdate, _ := cmd.Flags().GetBool("yes")
+			if !autoUpdate {
+				fmt.Print("Install update? [y/N]: ")
+				var response string
+				fmt.Scanln(&response)
+				if response != "y" && response != "Y" {
+					fmt.Println("Update cancelled")
+					return nil
+				}
+			}
+
+			return updater.Update(release)
+		},
+	}
+	updateCmd.Flags().BoolP("yes", "y", false, "Automatically install update without confirmation")
+
+	// Check update flag on root command
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		checkFlag, _ := cmd.Flags().GetBool("check-update")
+		if checkFlag {
+			release, hasUpdate, err := updater.CheckUpdate(version)
+			if err == nil && hasUpdate {
+				fmt.Printf("⚠ Update available: %s → %s (run 'gosync update' to install)\n", version, release.TagName)
+			}
+		}
+	}
+	rootCmd.PersistentFlags().BoolP("check-update", "u", false, "Check for updates before running command")
+
 	// Add commands to root
 	rootCmd.AddCommand(pullCmd)
 	rootCmd.AddCommand(syncCmd)
@@ -169,6 +218,7 @@ If no directory is specified, uses $HOME/dotfiles.`,
 	rootCmd.AddCommand(packagesCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(updateCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

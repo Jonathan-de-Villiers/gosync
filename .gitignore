@@ -22,7 +22,7 @@ build/
 dist/
 
 # Binary
-gosync
+/gosync
 *.exe
 
 # IDE files
