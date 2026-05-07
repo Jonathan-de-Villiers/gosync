@@ -8,8 +8,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
+
 	"gosync/internal/config"
 	"gosync/internal/diff"
+)
+
+// Color definitions for status output
+var (
+	colorHeader   = color.New(color.FgCyan, color.Bold)
+	colorSync     = color.New(color.FgYellow)
+	colorPull     = color.New(color.FgBlue)
+	colorModified = color.New(color.FgMagenta)
+	colorInSync   = color.New(color.FgGreen)
+	colorError    = color.New(color.FgRed)
+	colorInfo     = color.New(color.FgWhite, color.Faint)
 )
 
 type Syncer struct {
@@ -439,7 +452,7 @@ func (s *Syncer) status(target string) error {
 }
 
 func (s *Syncer) statusPackage(pkg string) error {
-	fmt.Printf("\nStatus for package '%s':\n", pkg)
+	colorHeader.Printf("\n📦 Status for package '%s':\n", pkg)
 
 	files, err := s.getPackageFiles(pkg)
 	if err != nil {
@@ -463,10 +476,10 @@ func (s *Syncer) statusPackage(pkg string) error {
 
 		if !repoExists && homeExists {
 			newFiles++
-			fmt.Printf("  → %s (only in home, needs sync)\n", file)
+			colorSync.Printf("  → %s (only in home, needs sync)\n", file)
 		} else if repoExists && !homeExists {
 			missing++
-			fmt.Printf("  ← %s (only in repo, needs pull)\n", file)
+			colorPull.Printf("  ← %s (only in repo, needs pull)\n", file)
 		} else if repoExists && homeExists && s.hasChanges(repoPath, homePath) {
 			changes++
 			repoInfo, _ := os.Stat(repoPath)
@@ -490,7 +503,7 @@ func (s *Syncer) statusPackage(pkg string) error {
 				homeTime = homeInfo.ModTime().Format("2006-01-02 15:04")
 			}
 
-			fmt.Printf("  %s %s (modified)\n", direction, file)
+			colorModified.Printf("  %s %s (modified)\n", direction, file)
 			if s.verbose {
 				fmt.Printf("      Repo: %s | Home: %s\n", repoTime, homeTime)
 			}
@@ -501,10 +514,34 @@ func (s *Syncer) statusPackage(pkg string) error {
 
 	// Show compact summary
 	if inSync > 0 && !s.verbose {
-		fmt.Printf("  ... and %d files in sync\n", inSync)
+		colorInfo.Printf("  ... and %d files in sync\n", inSync)
 	}
 
-	fmt.Printf("Summary: %d changed, %d new (sync needed), %d missing (pull needed), %d in sync\n", changes, newFiles, missing, inSync)
+	// Color-coded summary
+	fmt.Print("Summary: ")
+	if changes > 0 {
+		colorModified.Printf("%d changed", changes)
+	} else {
+		fmt.Printf("%d changed", changes)
+	}
+	fmt.Print(", ")
+	if newFiles > 0 {
+		colorSync.Printf("%d new (sync needed)", newFiles)
+	} else {
+		fmt.Printf("%d new (sync needed)", newFiles)
+	}
+	fmt.Print(", ")
+	if missing > 0 {
+		colorPull.Printf("%d missing (pull needed)", missing)
+	} else {
+		fmt.Printf("%d missing (pull needed)", missing)
+	}
+	fmt.Print(", ")
+	if inSync > 0 {
+		colorInSync.Printf("%d in sync\n", inSync)
+	} else {
+		fmt.Printf("%d in sync\n", inSync)
+	}
 	return nil
 }
 
