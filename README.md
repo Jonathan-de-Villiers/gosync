@@ -106,6 +106,20 @@ gosync packages
 gosync config show
 ```
 
+### Discover Command
+
+```bash
+# Scan ~/.config for untracked configs and add them
+gosync discover
+```
+
+This will scan your `~/.config` directory and offer to create packages for any
+untracked configuration directories. It automatically:
+- Skips system directories (Chrome, browsers, etc.)
+- Detects already-tracked configs
+- Creates the package structure in your dotfiles repo
+- Copies the current config to the repo
+
 ### Update Commands
 
 ```bash
