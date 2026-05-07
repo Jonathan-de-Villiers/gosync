@@ -163,6 +163,24 @@ If no directory is specified, uses $HOME/dotfiles.`,
 
 	configCmd.AddCommand(showConfigCmd)
 
+	// Discover command
+	var discoverCmd = &cobra.Command{
+		Use:   "discover",
+		Short: "Scan for and add untracked configs from ~/.config",
+		Long: `Scan your ~/.config directory for configuration directories that are not
+yet tracked in your dotfiles repository. This helps you discover and add
+new packages to sync.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := config.Load(configFile)
+			if err != nil {
+				return fmt.Errorf("failed to load config: %w", err)
+			}
+
+			syncer := sync.New(cfg, false, false)
+			return syncer.Discover()
+		},
+	}
+
 	// Update command
 	var updateCmd = &cobra.Command{
 		Use:   "update",
@@ -218,6 +236,7 @@ This command connects to GitHub to check for updates and can self-update the bin
 	rootCmd.AddCommand(packagesCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(discoverCmd)
 	rootCmd.AddCommand(updateCmd)
 
 	if err := rootCmd.Execute(); err != nil {

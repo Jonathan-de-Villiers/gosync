@@ -100,7 +100,7 @@ func (s *Syncer) sync(mode SyncMode, target string) error {
 
 		// Scan for untracked configs during push all
 		if mode == PushMode {
-			if err := s.scanUntracked(); err != nil {
+			if err := s.scanUntracked(true); err != nil {
 				fmt.Printf("Warning: failed to scan for untracked configs: %v\n", err)
 			}
 		}
@@ -556,8 +556,14 @@ func (s *Syncer) fileExists(path string) (bool, error) {
 	return false, err
 }
 
-func (s *Syncer) scanUntracked() error {
-	fmt.Println("\nScanning for untracked configurations...")
+// Discover scans for untracked configs in ~/.config and offers to add them
+func (s *Syncer) Discover() error {
+	return s.scanUntracked(true)
+}
+
+// scanUntracked scans ~/.config for directories not yet tracked in dotfiles
+func (s *Syncer) scanUntracked(interactive bool) error {
+	fmt.Println("\n🔍 Scanning for untracked configurations...")
 
 	configDir := filepath.Join(os.Getenv("HOME"), ".config")
 	entries, err := os.ReadDir(configDir)
